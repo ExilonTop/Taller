@@ -10,6 +10,7 @@ public class Gancho : MonoBehaviour
     public Transform puntoLanzamiento;          // Punto desde donde sale la cuerda
     public LineRenderer linea;                  // Referencia al LineRenderer
 
+    public float fuerzaBalanceo = 5f;
     private Rigidbody2D rb;
     private DistanceJoint2D joint;
     private Vector2 puntoGancho;
@@ -46,15 +47,20 @@ public class Gancho : MonoBehaviour
         // Si está enganchado, permitir recoger o soltar cuerda
         if (enganchado && joint != null)
         {
-            // W (positivo) acorta la cuerda -> sube
-            // S (negativo) alarga la cuerda -> baja
-            float ajuste = Input.GetAxis("Vertical") * velocidadRecogida * Time.deltaTime;
-            if (Mathf.Abs(ajuste) > 0.01f)
-            {
-                joint.distance = Mathf.Clamp(joint.distance - ajuste, 0.5f, distanciaMaxima);
-            }
+                // Ajustar longitud de la cuerda (radio del péndulo)
+                float ajuste = Input.GetAxis("Vertical") * velocidadRecogida * Time.deltaTime;
+                if (Mathf.Abs(ajuste) > 0.01f)
+                {
+                    // En Worms, al acortar la cuerda el personaje sube un poco, pero principalmente cambia el radio
+                    joint.distance = Mathf.Clamp(joint.distance - ajuste, 0.5f, distanciaMaxima);
+                }
 
-            ActualizarLinea();
+                // Opcional: fuerza lateral para ayudar a balancearse
+                float movHorizontal = Input.GetAxis("Horizontal");
+                if (Mathf.Abs(movHorizontal) > 0.1f)
+                {
+                    rb.AddForce(new Vector2(movHorizontal * fuerzaBalanceo, 0f), ForceMode2D.Force);
+                }
         }
     }
 
@@ -67,7 +73,6 @@ public class Gancho : MonoBehaviour
         if (distancia < 0.1f)
             return;
 
-        // Limitar el raycast a la distancia máxima
         float distanciaRaycast = Mathf.Min(distancia, distanciaMaxima);
         RaycastHit2D hit = Physics2D.Raycast(origen, direccion.normalized, distanciaRaycast, capasGancho);
 
@@ -82,18 +87,17 @@ public class Gancho : MonoBehaviour
                 ActualizarLinea();
             }
 
-            // Crear o configurar el DistanceJoint2D para simular la cuerda
             if (joint == null)
             {
                 joint = gameObject.AddComponent<DistanceJoint2D>();
                 joint.autoConfigureDistance = false;
                 joint.enableCollision = true;
-                joint.maxDistanceOnly = true; // Permite que la cuerda tenga holgura
+                joint.maxDistanceOnly = false; // Distancia exacta, sin holgura
             }
 
-            // Conectar el joint al punto fijo del mundo
             joint.connectedBody = null;
             joint.connectedAnchor = puntoGancho;
+            // La distancia inicial es la distancia al punto de impacto, limitada al máximo
             joint.distance = Mathf.Clamp(hit.distance, 0.5f, distanciaMaxima);
         }
     }
