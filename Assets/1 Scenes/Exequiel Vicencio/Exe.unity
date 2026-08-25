@@ -807,7 +807,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1592307777}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6f8d83394b146634ea714091103d327a, type: 3}
   m_Name: 
@@ -833,7 +833,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1592307777}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f3fefdc43a06539489d1dad1d05d9825, type: 3}
   m_Name: 
@@ -842,7 +842,7 @@ MonoBehaviour:
   maxDistance: 15
   grappleLayer:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 4294967295
   lineRenderer: {fileID: 1159779532}
 --- !u!1 &1766359388
 GameObject:
