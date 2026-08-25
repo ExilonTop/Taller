@@ -247,7 +247,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1159779528}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a8eef33af3117cd42acd61d9bfaccbaf, type: 3}
   m_Name: 
@@ -511,7 +511,7 @@ GameObject:
   - component: {fileID: 1376108055}
   - component: {fileID: 1376108054}
   - component: {fileID: 1376108053}
-  m_Layer: 6
+  m_Layer: 7
   m_Name: Square
   m_TagString: Pared
   m_Icon: {fileID: 0}
@@ -842,7 +842,7 @@ MonoBehaviour:
   maxDistance: 15
   grappleLayer:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 128
   lineRenderer: {fileID: 1159779532}
 --- !u!1 &1766359388
 GameObject:
