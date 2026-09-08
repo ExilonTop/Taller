@@ -2,23 +2,25 @@ using UnityEngine;
 
 public class FranBrazoApuntar : MonoBehaviour
 {
-    [Header("Configuración del Brazo")]
-    [Tooltip("El objeto que rotará (el brazo o la mano)")]
-    public Transform brazo;
+    [Header("Configuración")]
+    public Transform player;        // Referencia al player
+    public Transform brazo;         // El brazo
+    public float distancia = 1.5f;  // Distancia de órbita
 
     void Update()
     {
-        // 1. Obtener la posición del mouse en el mundo
         Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         mouseWorld.z = 0f;
 
-        // 2. Calcular la dirección desde el brazo hacia el mouse
-        Vector3 direccion = mouseWorld - brazo.position;
+        // Dirección desde el player hacia el mouse
+        Vector3 direccion = (mouseWorld - player.position).normalized;
 
-        // 3. Calcular el ángulo usando trigonometría (Atan2) y convertirlo a grados
+        // Nueva posición del brazo (órbita alrededor del player)
+        Vector3 nuevaPosicion = player.position + direccion * distancia;
+        brazo.position = nuevaPosicion;
+
+        // Rotación para que el brazo apunte en la dirección
         float angulo = Mathf.Atan2(direccion.y, direccion.x) * Mathf.Rad2Deg;
-
-        // 4. Aplicar la rotación al eje Z del brazo
-        brazo.rotation = Quaternion.Euler(new Vector3(0, 0, angulo));
+        brazo.rotation = Quaternion.Euler(0, 0, angulo);
     }
 }
