@@ -1359,7 +1359,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FranBrazoApuntar
   player: {fileID: 1112387623}
   brazo: {fileID: 530550355}
-  distancia: 0.68
+  distancia: 0.1
 --- !u!1 &1105633494
 GameObject:
   m_ObjectHideFlags: 0
