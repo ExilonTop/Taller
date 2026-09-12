@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: d2827eceb855cc5488b9ce9e946b9eee
+guid: 5ba4d2dd66606014f9068e35ea559fef
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 5858425434188383192
-    second: dirt cave center_0
+      213: -1265108970845184439
+    second: dirt cavecorner_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,7 +100,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: dirt cave center_0
+      name: dirt cavecorner_0
       rect:
         serializedVersion: 2
         x: 0
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8d389e3a4ee4d4150800000000000000
-      internalID: 5858425434188383192
+      spriteID: 94edc96081e617ee0800000000000000
+      internalID: -1265108970845184439
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      dirt cave center_0: 5858425434188383192
+      dirt cavecorner_0: -1265108970845184439
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
