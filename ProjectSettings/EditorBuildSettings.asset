@@ -6,11 +6,17 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/1 Scenes/Menu.unity
-    guid: 7b5c15523978b7b4191d359974b94477
+    path: Assets/1 Scenes/Francisco Torres/Nivel_01.unity
+    guid: 17df04c9c51b7d54ab36eb0ab22b62b0
   - enabled: 1
-    path: Assets/1 Scenes/Nivel_1.unity
-    guid: cac3d88ec6c6fd64fbf465ded9205e8c
+    path: Assets/1 Scenes/Francisco Torres/Nivel_02.unity
+    guid: 191a2dd5d9d28b347b15920b6d96742f
+  - enabled: 1
+    path: Assets/1 Scenes/Francisco Torres/Nivel_03.unity
+    guid: f0e16188efa67c84c96d3294f814182e
+  - enabled: 1
+    path: Assets/1 Scenes/Francisco Torres/Nivel_04.unity
+    guid: 8287a8429cbd7de4194e15f00a32379f
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0
