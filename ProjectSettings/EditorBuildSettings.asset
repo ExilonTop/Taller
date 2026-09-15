@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/1 Scenes/Menu.unity
+    guid: 7b5c15523978b7b4191d359974b94477
+  - enabled: 1
     path: Assets/1 Scenes/Francisco Torres/Nivel_01.unity
     guid: 17df04c9c51b7d54ab36eb0ab22b62b0
   - enabled: 1
