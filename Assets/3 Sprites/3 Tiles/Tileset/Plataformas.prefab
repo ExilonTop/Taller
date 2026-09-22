@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3476900368484407107}
   - component: {fileID: 6760022716579849402}
   - component: {fileID: 310977039189183038}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Layer1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -171,7 +171,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1448209527769041363}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: 'Plataforma_Mix (Missing Prefab with guid: 960cede48cd2be04b8d1feb8a95dd38f)'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -203,7 +203,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7331962192155375227}
   - component: {fileID: 3818174843572840820}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Plataformas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
