@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 5dbe6e9ecf11d2e4d8b672768c72ff28
+guid: 5a153692df5c35541b7cf94ede4d9b5e
 TextureImporter:
   internalIDToNameTable:
   - first:
@@ -20,6 +20,9 @@ TextureImporter:
   - first:
       213: -6580134927868918809
     second: Tile_Rock_plataforma_5
+  - first:
+      213: 5201286997307556696
+    second: Tile_Rock_plataforma_6
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -131,8 +134,8 @@ TextureImporter:
       name: Tile_Rock_plataforma_0
       rect:
         serializedVersion: 2
-        x: 3
-        y: 221
+        x: 7
+        y: 214
         width: 32
         height: 32
       alignment: 0
@@ -153,8 +156,8 @@ TextureImporter:
       name: Tile_Rock_plataforma_1
       rect:
         serializedVersion: 2
-        x: 36
-        y: 221
+        x: 40
+        y: 214
         width: 32
         height: 32
       alignment: 0
@@ -175,8 +178,8 @@ TextureImporter:
       name: Tile_Rock_plataforma_2
       rect:
         serializedVersion: 2
-        x: 69
-        y: 221
+        x: 73
+        y: 214
         width: 32
         height: 32
       alignment: 0
@@ -197,8 +200,8 @@ TextureImporter:
       name: Tile_Rock_plataforma_3
       rect:
         serializedVersion: 2
-        x: 107
-        y: 221
+        x: 113
+        y: 214
         width: 32
         height: 32
       alignment: 0
@@ -219,8 +222,8 @@ TextureImporter:
       name: Tile_Rock_plataforma_4
       rect:
         serializedVersion: 2
-        x: 140
-        y: 221
+        x: 146
+        y: 214
         width: 32
         height: 32
       alignment: 0
@@ -241,8 +244,8 @@ TextureImporter:
       name: Tile_Rock_plataforma_5
       rect:
         serializedVersion: 2
-        x: 173
-        y: 221
+        x: 179
+        y: 214
         width: 32
         height: 32
       alignment: 0
@@ -259,11 +262,33 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: Tile_Rock_plataforma_6
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 147
+        width: 98
+        height: 66
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 853006967feae2840800000000000000
+      internalID: 5201286997307556696
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 4addd1bea81c3674888864921da6f053
+    spriteID: f3cf9169d40fa0944a069ca0e66d45cc
     internalID: 0
     vertices: []
     indices: 
@@ -281,6 +306,7 @@ TextureImporter:
       Tile_Rock_plataforma_3: 596364174287390951
       Tile_Rock_plataforma_4: -6408693171414648371
       Tile_Rock_plataforma_5: -6580134927868918809
+      Tile_Rock_plataforma_6: 5201286997307556696
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
