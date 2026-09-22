@@ -17,7 +17,7 @@ public class TransicionCamaraFran : MonoBehaviour
             col.isTrigger = true;
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
+    private void OnTriggerStay2D(Collider2D other)
     {
         if (!other.CompareTag("Player"))
             return;
