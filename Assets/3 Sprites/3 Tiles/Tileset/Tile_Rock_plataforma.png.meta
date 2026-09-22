@@ -156,7 +156,7 @@ TextureImporter:
       name: Tile_Rock_plataforma_1
       rect:
         serializedVersion: 2
-        x: 40
+        x: 41
         y: 214
         width: 32
         height: 32
@@ -178,7 +178,7 @@ TextureImporter:
       name: Tile_Rock_plataforma_2
       rect:
         serializedVersion: 2
-        x: 73
+        x: 75
         y: 214
         width: 32
         height: 32
@@ -200,8 +200,8 @@ TextureImporter:
       name: Tile_Rock_plataforma_3
       rect:
         serializedVersion: 2
-        x: 113
-        y: 214
+        x: 7
+        y: 180
         width: 32
         height: 32
       alignment: 0
@@ -222,8 +222,8 @@ TextureImporter:
       name: Tile_Rock_plataforma_4
       rect:
         serializedVersion: 2
-        x: 146
-        y: 214
+        x: 41
+        y: 180
         width: 32
         height: 32
       alignment: 0
@@ -244,8 +244,8 @@ TextureImporter:
       name: Tile_Rock_plataforma_5
       rect:
         serializedVersion: 2
-        x: 179
-        y: 214
+        x: 75
+        y: 180
         width: 32
         height: 32
       alignment: 0
@@ -267,9 +267,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 7
-        y: 147
-        width: 98
-        height: 66
+        y: 146
+        width: 33
+        height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -280,6 +280,138 @@ TextureImporter:
       bones: []
       spriteID: 853006967feae2840800000000000000
       internalID: 5201286997307556696
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Tile_Rock_plataforma_7
+      rect:
+        serializedVersion: 2
+        x: 41
+        y: 146
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d455e94f952ab3f4db605a80500512e3
+      internalID: -494268436
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Tile_Rock_plataforma_8
+      rect:
+        serializedVersion: 2
+        x: 75
+        y: 146
+        width: 33
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2c48de1a772b111428f992176f42f7d3
+      internalID: 963537721
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Tile_Rock_plataforma_9
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 112
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: eb549f1c20c9baf4ba9f721d85a35a40
+      internalID: -709130965
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Tile_Rock_plataforma_10
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 78
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1478169db05e91147a8407c477d851e2
+      internalID: -2056052126
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Tile_Rock_plataforma_11
+      rect:
+        serializedVersion: 2
+        x: 41
+        y: 78
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3ce130a543d4ee94aa645d1ca7f50d99
+      internalID: 1492348035
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Tile_Rock_plataforma_12
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 43
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: da241d54662f020458f354c3ee90fc03
+      internalID: -1123386176
       vertices: []
       indices: 
       edges: []
@@ -302,11 +434,17 @@ TextureImporter:
     nameFileIdTable:
       Tile_Rock_plataforma_0: 7739060595717956407
       Tile_Rock_plataforma_1: -7045566999071249620
+      Tile_Rock_plataforma_10: -2056052126
+      Tile_Rock_plataforma_11: 1492348035
+      Tile_Rock_plataforma_12: -1123386176
       Tile_Rock_plataforma_2: 2701510213118159404
       Tile_Rock_plataforma_3: 596364174287390951
       Tile_Rock_plataforma_4: -6408693171414648371
       Tile_Rock_plataforma_5: -6580134927868918809
       Tile_Rock_plataforma_6: 5201286997307556696
+      Tile_Rock_plataforma_7: -494268436
+      Tile_Rock_plataforma_8: 963537721
+      Tile_Rock_plataforma_9: -709130965
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
