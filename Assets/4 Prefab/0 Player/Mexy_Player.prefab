@@ -346,7 +346,7 @@ MonoBehaviour:
   devolverAlLlegarAlMaximo: 1
   velocidadRetornoGancho: 25
   linea: {fileID: 6903895184021214946}
-  puntaGancho: {fileID: 3364031778118191199}
+  puntaGancho: {fileID: 0}
   brazo: {fileID: 4140399842115410994}
   fuerzaBalanceo: 20
   soloDistanciaMaxima: 1
