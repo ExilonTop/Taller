@@ -1421,6 +1421,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Mexy_Player
       objectReference: {fileID: 0}
+    - target: {fileID: 3050117945148236363, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
+      propertyPath: radioSuelo
+      value: 0.51
+      objectReference: {fileID: 0}
     - target: {fileID: 4331676901540788513, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.030133769
