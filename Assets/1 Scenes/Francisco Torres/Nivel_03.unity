@@ -2161,6 +2161,14 @@ MonoBehaviour:
   capasGancho:
     serializedVersion: 2
     m_Bits: 64
+  capasImpacto:
+    serializedVersion: 2
+    m_Bits: 0
+  usarCapasGanchoComoImpacto: 1
+  detectarTilemaps: 1
+  ignorarTriggers: 1
+  devolverAlLlegarAlMaximo: 1
+  velocidadRetornoGancho: 25
   linea: {fileID: 1170704630}
   puntaGancho: {fileID: 0}
   brazo: {fileID: 0}

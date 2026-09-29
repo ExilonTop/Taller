@@ -12,7 +12,7 @@ EditorBuildSettings:
     path: Assets/1 Scenes/Proto.unity
     guid: 8c9cfa26abfee488c85f1582747f6a02
   - enabled: 0
-    path: Assets/1 Scenes/Francisco Torres/Nivel_01.unity
+    path: Assets/1 Scenes/Nivel_Test.unity
     guid: 17df04c9c51b7d54ab36eb0ab22b62b0
   - enabled: 0
     path: Assets/1 Scenes/Francisco Torres/Nivel_02.unity
