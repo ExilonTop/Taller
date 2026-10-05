@@ -1417,6 +1417,10 @@ PrefabInstance:
       propertyPath: distanciaMaxima
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 151666471172948948, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
+      propertyPath: usarMovimientoTangencial
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 727110201621614699, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
       propertyPath: m_Name
       value: Mexy_Player

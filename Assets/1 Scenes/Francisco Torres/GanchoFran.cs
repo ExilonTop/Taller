@@ -44,7 +44,14 @@ public class GanchoFran : MonoBehaviour
     public FranBrazoApuntar brazo;
 
     [Header("Balanceo")]
-    public float fuerzaBalanceo = 5f;
+    [Tooltip("Fuerza que impulsa a Mexy en la dirección tangente a la cuerda.")]
+    public float fuerzaBalanceo = 20f;
+
+    [Tooltip("Si está activo, A/D mueve a Mexy siguiendo la curva alrededor del punto de agarre.")]
+    public bool usarMovimientoTangencial = true;
+
+    [Tooltip("Fuerza adicional opcional para ayudar a ganar altura durante el balanceo.")]
+    public float asistenciaAscenso = 0f;
 
     [Header("Joint")]
     [Tooltip("True = cuerda: solo limita la distancia máxima. False = mantiene una distancia fija.")]
@@ -149,15 +156,61 @@ public class GanchoFran : MonoBehaviour
         if (!enganchado)
             return;
 
-        float movHorizontal = Input.GetAxis("Horizontal");
+        float movHorizontal = Input.GetAxisRaw("Horizontal");
 
-        if (Mathf.Abs(movHorizontal) > 0.1f)
+        if (Mathf.Abs(movHorizontal) < 0.01f)
+            return;
+
+        // Punto físico donde la cuerda está unida al Player.
+        Vector2 puntoAnclaJugador =
+            rb.transform.TransformPoint(joint.anchor);
+
+        // Vector desde el Player hacia el punto donde está enganchado.
+        Vector2 vectorAlGancho =
+            puntoGancho - puntoAnclaJugador;
+
+        if (vectorAlGancho.sqrMagnitude < 0.0001f)
+            return;
+
+        Vector2 direccionCuerda =
+            vectorAlGancho.normalized;
+
+        // La tangente es perpendicular a la cuerda.
+        // A y D impulsan a Mexy a recorrer el arco alrededor del gancho.
+        Vector2 direccionTangente = new Vector2(
+            -direccionCuerda.y,
+            direccionCuerda.x
+        );
+
+        if (usarMovimientoTangencial)
+        {
+            // Invertimos la tangente para que A y D coincidan
+            // con la dirección esperada por el jugador:
+            // A = izquierda, D = derecha.
+            rb.AddForce(
+                direccionTangente *
+                -movHorizontal *
+                fuerzaBalanceo,
+                ForceMode2D.Force
+            );
+        }
+        else
+        {
+            // Modo alternativo por si quieren comparar con el movimiento anterior.
+            rb.AddForce(
+                Vector2.right *
+                movHorizontal *
+                fuerzaBalanceo,
+                ForceMode2D.Force
+            );
+        }
+
+        // Asistencia opcional para que el jugador gane altura.
+        // Se aplica solamente hacia arriba, sin reemplazar la física del balanceo.
+        if (asistenciaAscenso > 0f)
         {
             rb.AddForce(
-                new Vector2(
-                    movHorizontal * fuerzaBalanceo,
-                    0f
-                ),
+                Vector2.up * asistenciaAscenso,
                 ForceMode2D.Force
             );
         }
@@ -518,24 +571,13 @@ public class GanchoFran : MonoBehaviour
         linea.enabled = true;
         linea.positionCount = 2;
 
-        // Origen de la cuerda: punta del brazo.
         linea.SetPosition(0, origen);
 
-        // Extremo de la cuerda: posición REAL de PuntaGancho.
-        // De esta forma la línea siempre termina exactamente
-        // donde se encuentra visualmente la punta.
-        if (puntaGancho != null && puntaGancho.gameObject.activeSelf)
-        {
-            linea.SetPosition(1, puntaGancho.position);
-        }
-        else
-        {
-            Vector2 extremo =
-                enganchado
-                    ? puntoGancho
-                    : posicionGanchoVisual;
+        Vector2 extremo =
+            enganchado
+                ? puntoGancho
+                : posicionGanchoVisual;
 
-            linea.SetPosition(1, extremo);
-        }
+        linea.SetPosition(1, extremo);
     }
 }
