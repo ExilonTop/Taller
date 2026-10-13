@@ -23734,7 +23734,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 4382715748146409819, guid: 7a2ccaa664e6643439bce64866588513, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2137866284}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7a2ccaa664e6643439bce64866588513, type: 3}
 --- !u!1 &1581283860
@@ -31474,9 +31477,17 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1289121325}
     - target: {fileID: 151666471172948948, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
+      propertyPath: camaraObjetivo
+      value: 
+      objectReference: {fileID: 519420031}
+    - target: {fileID: 151666471172948948, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
       propertyPath: distanciaMaxima
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 151666471172948948, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
+      propertyPath: puntoUnionCuerda
+      value: 
+      objectReference: {fileID: 2137866284}
     - target: {fileID: 151666471172948948, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
       propertyPath: usarMovimientoTangencial
       value: 1
@@ -31488,6 +31499,22 @@ PrefabInstance:
     - target: {fileID: 3050117945148236363, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
       propertyPath: radioSuelo
       value: 0.51
+      objectReference: {fileID: 0}
+    - target: {fileID: 4140399842115410994, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
+      propertyPath: distancia
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4140399842115410994, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
+      propertyPath: camaraObjetivo
+      value: 
+      objectReference: {fileID: 519420031}
+    - target: {fileID: 4140399842115410994, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
+      propertyPath: excluirDelRaycast
+      value: 
+      objectReference: {fileID: 1289121325}
+    - target: {fileID: 4140399842115410994, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
+      propertyPath: mostrarDiagnostico
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4331676901540788513, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
       propertyPath: m_LocalPosition.x
@@ -31528,6 +31555,10 @@ PrefabInstance:
     - target: {fileID: 4331676901540788513, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6903895184021214946, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
+      propertyPath: m_Parameters.widthCurve.m_Curve.Array.data[0].value
+      value: 0.11937523
       objectReference: {fileID: 0}
     - target: {fileID: 8093821322804968390, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
       propertyPath: m_Material
@@ -39088,6 +39119,37 @@ RectTransform:
   m_AnchoredPosition: {x: 1.8867, y: 0.23531}
   m_SizeDelta: {x: 501, y: 495}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &2137866283
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2137866284}
+  m_Layer: 0
+  m_Name: PuntoUnionCuerda
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2137866284
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2137866283}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1289121325}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &3949839470575428038
 PrefabInstance:
   m_ObjectHideFlags: 0
