@@ -2,9 +2,33 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
+/// <summary>
+/// Gancho de agarre 2D: se lanza con el click izquierdo hacia el cursor,
+/// se engancha a superficies válidas mediante un DistanceJoint2D y permite
+/// balancearse (A/D) y recoger/soltar cuerda (W/S).
+///
+/// Dependencias externas (se conservan tal cual):
+///  - FranBrazoApuntar.ObtenerPuntoLanzamiento()
+///  - MouseWorld2D.TryGetPointOnPlane(...)
+/// </summary>
+[DisallowMultipleComponent]
 [RequireComponent(typeof(Rigidbody2D))]
 public class GanchoFran : MonoBehaviour
 {
+    // ------------------------------------------------------------------
+    // Estados
+    // ------------------------------------------------------------------
+    private enum Estado
+    {
+        Reposo,
+        Lanzando,
+        Enganchado,
+        Recogiendo
+    }
+
+    // ------------------------------------------------------------------
+    // Inspector
+    // ------------------------------------------------------------------
     [Header("Alcance y velocidad")]
     public float distanciaMaxima = 10f;
     public float distanciaMinima = 1f;
@@ -14,14 +38,12 @@ public class GanchoFran : MonoBehaviour
     public bool limitarAlPuntoMouse = true;
 
     [Header("Superficies")]
-    [Tooltip("Capas donde el gancho puede quedarse enganchado.")]
+    [Tooltip("Capas donde el gancho puede quedarse enganchado. Cualquier otro collider sólido detiene el gancho, pero no permite engancharse.")]
     public LayerMask capasGancho;
 
-    [Tooltip("Capas que detienen el gancho pero no permiten engancharse.")]
-    public LayerMask capasImpacto;
-
-    public bool usarCapasGanchoComoImpacto = true;
+    [Tooltip("Si está activo, los colliders de Tilemap/Composite se consideran enganchables cuando su Layer (o la de algún padre) está en capasGancho.")]
     public bool detectarTilemaps = true;
+
     public bool ignorarTriggers = true;
     public bool devolverAlLlegarAlMaximo = true;
 
@@ -68,27 +90,63 @@ public class GanchoFran : MonoBehaviour
     [Tooltip("True = cuerda que limita la distancia máxima.")]
     public bool soloDistanciaMaxima = true;
 
+    // ------------------------------------------------------------------
+    // Constantes
+    // ------------------------------------------------------------------
+    private const float EpsilonSqr = 0.0001f;
+    private const float UmbralEntrada = 0.01f;
+    private const int TamanoBuffer = 32;
+
+    // ------------------------------------------------------------------
+    // Estado interno
+    // ------------------------------------------------------------------
     private Rigidbody2D rb;
     private DistanceJoint2D joint;
     private Camera cam;
 
+    private Estado estado = Estado.Reposo;
+
     private Vector2 puntoGancho;
     private Vector2 posicionGanchoVisual;
 
-    private bool enganchado;
-    private bool lanzando;
-    private bool recogiendo;
-
     private float longitudObjetivo;
-    private float entradaRecogido; // W = +1, S = -1
+    private float entradaRecogido;   // W = +1, S = -1
+    private float entradaHorizontal; // A = -1, D = +1
 
     private Coroutine lanzamientoCoroutine;
 
+    // Buffers reutilizables: evitan generar basura (GC) en cada raycast.
+    private readonly RaycastHit2D[] bufferHits = new RaycastHit2D[TamanoBuffer];
+    private readonly Collider2D[] bufferColliders = new Collider2D[TamanoBuffer];
+
+    // ------------------------------------------------------------------
+    // API pública de solo lectura (útil para animaciones, UI, etc.)
+    // ------------------------------------------------------------------
+    public bool EstaEnganchado => estado == Estado.Enganchado;
+    public bool EstaLanzando => estado == Estado.Lanzando;
+    public Vector2 PuntoEnganche => puntoGancho;
+
+    // ------------------------------------------------------------------
+    // Compatibilidad Unity 6 (linearVelocity) / versiones anteriores (velocity)
+    // ------------------------------------------------------------------
+    private Vector2 Velocidad
+    {
+#if UNITY_6000_0_OR_NEWER
+        get => rb.linearVelocity;
+        set => rb.linearVelocity = value;
+#else
+        get => rb.velocity;
+        set => rb.velocity = value;
+#endif
+    }
+
+    // ==================================================================
+    // Ciclo de vida
+    // ==================================================================
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-
-        cam = camaraObjetivo != null ? camaraObjetivo : Camera.main;
+        cam = ObtenerCamara();
 
         rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         rb.interpolation = RigidbodyInterpolation2D.Interpolate;
@@ -116,69 +174,134 @@ public class GanchoFran : MonoBehaviour
         joint.enableCollision = true;
         joint.maxDistanceOnly = soloDistanciaMaxima;
         joint.enabled = false;
+
+        if (brazo == null)
+            Debug.LogWarning($"[{nameof(GanchoFran)}] No hay 'brazo' asignado: el gancho saldrá del centro del Rigidbody.", this);
+    }
+
+    private void OnDisable()
+    {
+        // Si el componente se desactiva (muerte, cambio de escena, pausa de control...),
+        // dejamos todo limpio para no quedar colgados de una cuerda fantasma.
+        ReiniciarTodo();
+    }
+
+    private void OnValidate()
+    {
+        distanciaMaxima = Mathf.Max(0.1f, distanciaMaxima);
+        distanciaMinima = Mathf.Clamp(distanciaMinima, 0f, distanciaMaxima);
+        velocidadGancho = Mathf.Max(0f, velocidadGancho);
+        velocidadRetornoGancho = Mathf.Max(0f, velocidadRetornoGancho);
+        velocidadRecogida = Mathf.Max(0f, velocidadRecogida);
+        suavidadRecogida = Mathf.Max(0f, suavidadRecogida);
+        diferenciaMaximaTension = Mathf.Max(0f, diferenciaMaximaTension);
+        fuerzaRecogida = Mathf.Max(0f, fuerzaRecogida);
+        fuerzaBalanceo = Mathf.Max(0f, fuerzaBalanceo);
     }
 
     private void Update()
     {
-        if (cam == null)
-            cam = camaraObjetivo != null ? camaraObjetivo : Camera.main;
-
-        if (cam != null &&
-            MouseWorld2D.TryGetPointOnPlane(
-                cam,
-                Input.mousePosition,
-                transform.position.z,
-                out Vector2 mouseWorld))
-        {
-            if (Input.GetMouseButtonDown(0) &&
-                !enganchado &&
-                !lanzando &&
-                !recogiendo &&
-                brazo != null)
-            {
-                lanzamientoCoroutine = StartCoroutine(LanzarGancho(mouseWorld));
-            }
-        }
-
-        if (Input.GetMouseButtonUp(0))
-        {
-            // Soltar durante el vuelo cancela el lanzamiento.
-            if (lanzando && !recogiendo)
-            {
-                if (lanzamientoCoroutine != null)
-                    StopCoroutine(lanzamientoCoroutine);
-
-                lanzamientoCoroutine = null;
-                lanzando = false;
-                OcultarGanchoVisual();
-            }
-
-            if (enganchado)
-                SoltarGancho();
-        }
-
-        // Leer teclas directas evita el retardo de suavizado de Input.GetAxis("Vertical").
-        entradaRecogido = 0f;
-
-        if (enganchado)
-        {
-            bool w = Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow);
-            bool s = Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow);
-
-            if (w != s)
-                entradaRecogido = w ? 1f : -1f;
-        }
+        ProcesarClick();
+        LeerEntradaDeCuerda();
     }
 
     private void FixedUpdate()
     {
-        if (!enganchado || joint == null || !joint.enabled)
+        if (estado != Estado.Enganchado || joint == null || !joint.enabled)
             return;
 
         float dt = Time.fixedDeltaTime;
+        Vector2 anclaJugador = transform.TransformPoint(joint.anchor);
+        float distanciaReal = Vector2.Distance(anclaJugador, puntoGancho);
 
+        ActualizarLongitudCuerda(distanciaReal, dt);
+        AplicarRecogido(anclaJugador, distanciaReal);
+        AplicarBalanceo(anclaJugador);
+
+        if (asistenciaAscenso > 0f)
+            rb.AddForce(Vector2.up * asistenciaAscenso, ForceMode2D.Force);
+    }
+
+    private void LateUpdate()
+    {
+        if (estado != Estado.Reposo)
+            ActualizarLinea();
+    }
+
+    // ==================================================================
+    // Entrada
+    // ==================================================================
+    private void ProcesarClick()
+    {
+        if (Input.GetMouseButtonDown(0) && estado == Estado.Reposo)
+            IntentarLanzar();
+
+        if (!Input.GetMouseButtonUp(0))
+            return;
+
+        switch (estado)
+        {
+            case Estado.Lanzando:
+                // Soltar durante el vuelo cancela el lanzamiento.
+                CancelarLanzamiento();
+                break;
+
+            case Estado.Enganchado:
+                SoltarGancho();
+                break;
+        }
+    }
+
+    private void LeerEntradaDeCuerda()
+    {
+        entradaRecogido = 0f;
+        entradaHorizontal = 0f;
+
+        if (estado != Estado.Enganchado)
+            return;
+
+        // Teclas directas: evitan el retardo de suavizado de Input.GetAxis("Vertical").
+        bool w = Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow);
+        bool s = Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow);
+
+        if (w != s)
+            entradaRecogido = w ? 1f : -1f;
+
+        entradaHorizontal = Input.GetAxisRaw("Horizontal");
+    }
+
+    private void IntentarLanzar()
+    {
+        cam = ObtenerCamara();
+        if (cam == null)
+            return;
+
+        if (!MouseWorld2D.TryGetPointOnPlane(
+                cam,
+                Input.mousePosition,
+                transform.position.z,
+                out Vector2 mouseWorld))
+            return;
+
+        estado = Estado.Lanzando;
+        lanzamientoCoroutine = StartCoroutine(LanzarGancho(mouseWorld));
+    }
+
+    private Camera ObtenerCamara()
+    {
+        if (cam != null)
+            return cam;
+
+        return camaraObjetivo != null ? camaraObjetivo : Camera.main;
+    }
+
+    // ==================================================================
+    // Física mientras se está enganchado
+    // ==================================================================
+    private void ActualizarLongitudCuerda(float distanciaReal, float dt)
+    {
         // W reduce la longitud deseada; S la aumenta.
-        if (Mathf.Abs(entradaRecogido) > 0.01f)
+        if (Mathf.Abs(entradaRecogido) > UmbralEntrada)
         {
             longitudObjetivo = Mathf.Clamp(
                 longitudObjetivo - entradaRecogido * velocidadRecogida * dt,
@@ -187,165 +310,116 @@ public class GanchoFran : MonoBehaviour
             );
         }
 
-        Vector2 anclaJugador = rb.transform.TransformPoint(joint.anchor);
-        float distanciaReal = Vector2.Distance(anclaJugador, puntoGancho);
-
         float longitudSiguiente = Mathf.MoveTowards(
             joint.distance,
             longitudObjetivo,
             suavidadRecogida * dt
         );
 
-        // Protección permanente contra tensión acumulada:
-        // nunca permitimos que el joint quede muy por debajo de la distancia real.
-        // A diferencia de la versión anterior, ahora W aplica una fuerza radial
-        // controlada para que Mexy sí pueda acercarse al punto de enganche.
+        // Protección contra tensión acumulada: el joint nunca queda muy por debajo
+        // de la distancia real (por ejemplo si una pared bloquea al jugador).
         float longitudMinimaSegura = Mathf.Max(
             distanciaMinima,
             distanciaReal - Mathf.Max(0.02f, diferenciaMaximaTension)
         );
 
-        longitudSiguiente = Mathf.Max(
-            longitudSiguiente,
-            longitudMinimaSegura
-        );
+        longitudSiguiente = Mathf.Max(longitudSiguiente, longitudMinimaSegura);
 
-        joint.distance = Mathf.Clamp(
-            longitudSiguiente,
-            distanciaMinima,
-            distanciaMaxima
-        );
-
-        // Recogido activo: W atrae a Mexy hacia el ancla gradualmente.
-        // La velocidad se limita para evitar que al desbloquearse de una pared
-        // el personaje salga disparado por la tensión acumulada.
-        if (entradaRecogido > 0f &&
-            fuerzaRecogida > 0f &&
-            distanciaReal > distanciaMinima + 0.05f)
-        {
-            Vector2 haciaGancho = puntoGancho - anclaJugador;
-
-            if (haciaGancho.sqrMagnitude > 0.0001f)
-            {
-                haciaGancho.Normalize();
-
-                LimitarVelocidadHaciaGancho(anclaJugador);
-
-                rb.AddForce(
-                    haciaGancho * fuerzaRecogida,
-                    ForceMode2D.Force
-                );
-            }
-        }
-
-        // Balanceo A/D a lo largo de la tangente de la cuerda.
-        float movHorizontal = Input.GetAxisRaw("Horizontal");
-
-        if (usarMovimientoTangencial && Mathf.Abs(movHorizontal) > 0.01f)
-        {
-            Vector2 vectorAlGancho = puntoGancho - anclaJugador;
-
-            if (vectorAlGancho.sqrMagnitude > 0.0001f)
-            {
-                Vector2 direccionCuerda = vectorAlGancho.normalized;
-                Vector2 direccionTangente = new Vector2(
-                    -direccionCuerda.y,
-                    direccionCuerda.x
-                );
-
-                // El signo menos conserva los controles corregidos: A izquierda, D derecha.
-                rb.AddForce(
-                    direccionTangente * -movHorizontal * fuerzaBalanceo,
-                    ForceMode2D.Force
-                );
-            }
-        }
-        else if (!usarMovimientoTangencial && Mathf.Abs(movHorizontal) > 0.01f)
-        {
-            rb.AddForce(
-                Vector2.right * movHorizontal * fuerzaBalanceo,
-                ForceMode2D.Force
-            );
-        }
-
-        if (asistenciaAscenso > 0f)
-        {
-            rb.AddForce(
-                Vector2.up * asistenciaAscenso,
-                ForceMode2D.Force
-            );
-        }
+        joint.distance = Mathf.Clamp(longitudSiguiente, distanciaMinima, distanciaMaxima);
     }
 
-    private void LimitarVelocidadHaciaGancho(Vector2 anclaJugador)
+    private void AplicarRecogido(Vector2 anclaJugador, float distanciaReal)
     {
-        if (velocidadMaximaHaciaGancho <= 0f)
+        // W atrae gradualmente a Mexy hacia el ancla, con velocidad radial limitada.
+        if (entradaRecogido <= 0f ||
+            fuerzaRecogida <= 0f ||
+            distanciaReal <= distanciaMinima + 0.05f)
             return;
 
         Vector2 haciaGancho = puntoGancho - anclaJugador;
-
-        if (haciaGancho.sqrMagnitude < 0.0001f)
+        if (haciaGancho.sqrMagnitude <= EpsilonSqr)
             return;
 
         haciaGancho.Normalize();
 
-        float velocidadRadial = Vector2.Dot(rb.linearVelocity, haciaGancho);
+        LimitarVelocidadHaciaGancho(haciaGancho);
+        rb.AddForce(haciaGancho * fuerzaRecogida, ForceMode2D.Force);
+    }
 
-        // Limitamos sólo la componente de velocidad que acerca a Mexy al ancla.
-        // Se invoca durante el recogido para que A/D y la inercia tangencial
-        // sigan funcionando sin un límite horizontal artificial.
+    private void AplicarBalanceo(Vector2 anclaJugador)
+    {
+        if (Mathf.Abs(entradaHorizontal) <= UmbralEntrada)
+            return;
+
+        if (!usarMovimientoTangencial)
+        {
+            rb.AddForce(Vector2.right * entradaHorizontal * fuerzaBalanceo, ForceMode2D.Force);
+            return;
+        }
+
+        Vector2 vectorAlGancho = puntoGancho - anclaJugador;
+        if (vectorAlGancho.sqrMagnitude <= EpsilonSqr)
+            return;
+
+        Vector2 direccionCuerda = vectorAlGancho.normalized;
+        Vector2 direccionTangente = new Vector2(-direccionCuerda.y, direccionCuerda.x);
+
+        // El signo menos conserva los controles corregidos: A izquierda, D derecha.
+        rb.AddForce(direccionTangente * -entradaHorizontal * fuerzaBalanceo, ForceMode2D.Force);
+    }
+
+    private void LimitarVelocidadHaciaGancho(Vector2 haciaGanchoNormalizado)
+    {
+        if (velocidadMaximaHaciaGancho <= 0f)
+            return;
+
+        Vector2 velocidad = Velocidad;
+        float velocidadRadial = Vector2.Dot(velocidad, haciaGanchoNormalizado);
+
+        // Limita solo la componente que acerca a Mexy al ancla; la inercia
+        // tangencial y A/D siguen funcionando sin límite artificial.
         if (velocidadRadial > velocidadMaximaHaciaGancho)
         {
-            rb.linearVelocity -= haciaGancho *
-                (velocidadRadial - velocidadMaximaHaciaGancho);
+            Velocidad = velocidad -
+                        haciaGanchoNormalizado * (velocidadRadial - velocidadMaximaHaciaGancho);
         }
     }
 
-    private void LateUpdate()
-    {
-        if (lanzando || enganchado || recogiendo)
-            ActualizarLinea();
-    }
-
+    // ==================================================================
+    // Lanzamiento
+    // ==================================================================
     private Vector2 ObtenerOrigen()
     {
         if (brazo != null)
             return brazo.ObtenerPuntoLanzamiento();
 
-        return rb.position;
+        return rb != null ? rb.position : (Vector2)transform.position;
     }
 
     private IEnumerator LanzarGancho(Vector2 destino)
     {
-        lanzando = true;
-
         Vector2 origen = ObtenerOrigen();
         Vector2 vectorDestino = destino - origen;
         float distanciaAlCursor = vectorDestino.magnitude;
 
         if (distanciaAlCursor < 0.0001f)
         {
-            lanzando = false;
-            lanzamientoCoroutine = null;
+            FinalizarLanzamiento();
             yield break;
         }
 
         Vector2 direccion = vectorDestino / distanciaAlCursor;
 
-        // IMPORTANTE: en el código anterior la punta siempre viajaba hasta
-        // distanciaMaxima, aunque el cursor estuviera sobre una superficie
-        // cercana. Así podía alcanzar una pared situada más lejos del objetivo.
+        // La punta solo llega hasta el cursor (si está activado) o hasta distanciaMaxima.
         float alcanceVuelo = limitarAlPuntoMouse
             ? Mathf.Min(distanciaAlCursor, distanciaMaxima)
             : distanciaMaxima;
 
-        // El raycast no detecta de forma fiable una superficie que contiene
-        // su propio origen. Si el origen queda dentro de geometría sólida,
-        // no permitimos que el gancho atraviese esa superficie para agarrar otra.
+        // Un raycast no detecta de forma fiable la superficie que contiene su origen.
+        // Si el origen está dentro de geometría sólida, se cancela el lanzamiento.
         if (HayObstaculoEnOrigen(origen))
         {
-            lanzando = false;
-            lanzamientoCoroutine = null;
+            FinalizarLanzamiento();
             yield break;
         }
 
@@ -361,19 +435,9 @@ public class GanchoFran : MonoBehaviour
                 alcanceVuelo - distanciaRecorrida
             );
 
-            Vector2 siguientePosicion =
-                posicionGanchoVisual + direccion * avance;
-
-            Vector2 tramo = siguientePosicion - posicionGanchoVisual;
-            float longitudTramo = tramo.magnitude;
-
-            if (longitudTramo > 0f)
+            if (avance > 0f)
             {
-                RaycastHit2D hit = BuscarSuperficie(
-                    posicionGanchoVisual,
-                    tramo.normalized,
-                    longitudTramo
-                );
+                RaycastHit2D hit = BuscarSuperficie(posicionGanchoVisual, direccion, avance);
 
                 if (hit.collider != null)
                 {
@@ -384,174 +448,56 @@ public class GanchoFran : MonoBehaviour
                     {
                         puntoGancho = hit.point;
                         ConfigurarJoint(origen);
-
-                        lanzando = false;
                         lanzamientoCoroutine = null;
                         yield break;
                     }
 
                     // Superficie no enganchable: la punta vuelve al brazo.
-                    yield return StartCoroutine(RecogerGancho());
-
-                    lanzando = false;
-                    lanzamientoCoroutine = null;
+                    yield return RecogerGancho();
+                    FinalizarLanzamiento();
                     yield break;
                 }
             }
 
-            posicionGanchoVisual = siguientePosicion;
+            posicionGanchoVisual += direccion * avance;
             distanciaRecorrida += avance;
 
             MostrarGanchoVisual(posicionGanchoVisual);
             yield return null;
         }
 
-        // Si no encontró nada hasta el máximo alcance, también vuelve al brazo.
+        // No encontró nada hasta el máximo alcance.
         if (devolverAlLlegarAlMaximo)
-            yield return StartCoroutine(RecogerGancho());
+        {
+            yield return RecogerGancho();
+        }
         else
+        {
             OcultarGanchoVisual();
+        }
 
-        lanzando = false;
+        FinalizarLanzamiento();
+    }
+
+    private void FinalizarLanzamiento()
+    {
         lanzamientoCoroutine = null;
+        estado = Estado.Reposo;
     }
 
-    private RaycastHit2D BuscarSuperficie(
-        Vector2 origen,
-        Vector2 direccion,
-        float distancia
-    )
+    private void CancelarLanzamiento()
     {
-        // Detectamos TODOS los colliders 2D sólidos de la trayectoria, no solo
-        // los de capasGancho/capasImpacto. La superficie más cercana siempre
-        // bloquea el gancho; luego EsEnganchable decide si puede adherirse.
-        RaycastHit2D[] hits = Physics2D.RaycastAll(
-            origen,
-            direccion,
-            distancia
-        );
+        if (lanzamientoCoroutine != null)
+            StopCoroutine(lanzamientoCoroutine);
 
-        RaycastHit2D mejorHit = default;
-        float menorDistancia = float.MaxValue;
-
-        foreach (RaycastHit2D hit in hits)
-        {
-            if (!HitValido(hit))
-                continue;
-
-            if (hit.distance < menorDistancia)
-            {
-                menorDistancia = hit.distance;
-                mejorHit = hit;
-            }
-        }
-
-        return mejorHit;
-    }
-
-    private bool HayObstaculoEnOrigen(Vector2 origen)
-    {
-        // Protección contra raycasts que empiezan dentro de un collider.
-        // El brazo ya intenta quedarse antes de la superficie, pero esto
-        // evita un enganche a través de paredes si la geometría llega a solaparse.
-        Collider2D[] overlaps = Physics2D.OverlapPointAll(origen);
-
-        foreach (Collider2D collider in overlaps)
-        {
-            if (ColliderValido(collider))
-                return true;
-        }
-
-        return false;
-    }
-
-    private bool HitValido(RaycastHit2D hit)
-    {
-        return ColliderValido(hit.collider);
-    }
-
-    private bool ColliderValido(Collider2D collider)
-    {
-        if (collider == null)
-            return false;
-
-        if (ignorarTriggers && collider.isTrigger)
-            return false;
-
-        if (collider.attachedRigidbody == rb)
-            return false;
-
-        if (collider.transform == transform ||
-            collider.transform.IsChildOf(transform))
-            return false;
-
-        // La punta visual y su punto de unión no son superficies del escenario.
-        if (puntaGancho != null &&
-            (collider.transform == puntaGancho ||
-             collider.transform.IsChildOf(puntaGancho)))
-            return false;
-
-        if (puntoUnionCuerda != null &&
-            (collider.transform == puntoUnionCuerda ||
-             collider.transform.IsChildOf(puntoUnionCuerda)))
-            return false;
-
-        return true;
-    }
-
-    private bool EsColliderDeTilemap(Collider2D collider)
-    {
-        if (collider.GetComponent<TilemapCollider2D>() != null)
-            return true;
-
-        if (collider.GetComponentInParent<TilemapCollider2D>() != null)
-            return true;
-
-        if (collider.GetComponent<CompositeCollider2D>() != null)
-            return true;
-
-        if (collider.GetComponentInParent<CompositeCollider2D>() != null)
-            return true;
-
-        return false;
-    }
-
-    private bool EsEnganchable(Collider2D collider)
-    {
-        if (collider == null)
-            return false;
-
-        if (CapaIncluida(capasGancho, collider.gameObject.layer))
-            return true;
-
-        bool esTilemap =
-            collider.GetComponent<TilemapCollider2D>() != null ||
-            collider.GetComponentInParent<TilemapCollider2D>() != null ||
-            collider.GetComponent<CompositeCollider2D>() != null ||
-            collider.GetComponentInParent<CompositeCollider2D>() != null;
-
-        if (!esTilemap)
-            return false;
-
-        // En algunos Tilemap, el collider está en un hijo y la Layer
-        // se asignó al Tilemap o al Grid padre. Comprobamos toda esa jerarquía.
-        for (Transform actual = collider.transform; actual != null; actual = actual.parent)
-        {
-            if (CapaIncluida(capasGancho, actual.gameObject.layer))
-                return true;
-        }
-
-        return false;
-    }
-
-    private bool CapaIncluida(LayerMask mask, int layer)
-    {
-        return (mask.value & (1 << layer)) != 0;
+        lanzamientoCoroutine = null;
+        estado = Estado.Reposo;
+        OcultarGanchoVisual();
     }
 
     private IEnumerator RecogerGancho()
     {
-        recogiendo = true;
+        estado = Estado.Recogiendo;
 
         while (true)
         {
@@ -572,37 +518,156 @@ public class GanchoFran : MonoBehaviour
         }
 
         posicionGanchoVisual = ObtenerOrigen();
-        recogiendo = false;
         OcultarGanchoVisual();
+        // El estado vuelve a Reposo en FinalizarLanzamiento().
     }
 
+    // ==================================================================
+    // Detección de superficies
+    // ==================================================================
+    private ContactFilter2D CrearFiltro()
+    {
+        ContactFilter2D filtro = new ContactFilter2D();
+        filtro.NoFilter();
+        filtro.useTriggers = !ignorarTriggers;
+        return filtro;
+    }
+
+    private RaycastHit2D BuscarSuperficie(Vector2 origen, Vector2 direccion, float distancia)
+    {
+        // Se detectan TODOS los colliders sólidos del trayecto: el más cercano siempre
+        // bloquea el gancho y luego EsEnganchable decide si puede adherirse.
+        int cantidad = Physics2D.Raycast(
+            origen,
+            direccion,
+            CrearFiltro(),
+            bufferHits,
+            distancia
+        );
+
+        RaycastHit2D mejorHit = default;
+        float menorDistancia = float.MaxValue;
+
+        for (int i = 0; i < cantidad; i++)
+        {
+            RaycastHit2D hit = bufferHits[i];
+
+            if (!ColliderValido(hit.collider))
+                continue;
+
+            if (hit.distance < menorDistancia)
+            {
+                menorDistancia = hit.distance;
+                mejorHit = hit;
+            }
+        }
+
+        return mejorHit;
+    }
+
+    private bool HayObstaculoEnOrigen(Vector2 origen)
+    {
+        int cantidad = Physics2D.OverlapPoint(origen, CrearFiltro(), bufferColliders);
+
+        for (int i = 0; i < cantidad; i++)
+        {
+            if (ColliderValido(bufferColliders[i]))
+                return true;
+        }
+
+        return false;
+    }
+
+    private bool ColliderValido(Collider2D collider)
+    {
+        if (collider == null)
+            return false;
+
+        if (ignorarTriggers && collider.isTrigger)
+            return false;
+
+        if (collider.attachedRigidbody == rb)
+            return false;
+
+        if (EsParteDe(collider.transform, transform))
+            return false;
+
+        // La punta visual y su punto de unión no son superficies del escenario.
+        if (puntaGancho != null && EsParteDe(collider.transform, puntaGancho))
+            return false;
+
+        if (puntoUnionCuerda != null && EsParteDe(collider.transform, puntoUnionCuerda))
+            return false;
+
+        return true;
+    }
+
+    private static bool EsParteDe(Transform objetivo, Transform raiz)
+    {
+        return objetivo == raiz || objetivo.IsChildOf(raiz);
+    }
+
+    private static bool EsColliderDeTilemap(Collider2D collider)
+    {
+        // GetComponentInParent también incluye al propio objeto.
+        return collider.GetComponentInParent<TilemapCollider2D>() != null ||
+               collider.GetComponentInParent<CompositeCollider2D>() != null;
+    }
+
+    private bool EsEnganchable(Collider2D collider)
+    {
+        if (collider == null)
+            return false;
+
+        if (CapaIncluida(capasGancho, collider.gameObject.layer))
+            return true;
+
+        if (!detectarTilemaps || !EsColliderDeTilemap(collider))
+            return false;
+
+        // En algunos Tilemap el collider está en un hijo y la Layer se asignó
+        // al Tilemap o al Grid padre: se comprueba toda la jerarquía.
+        for (Transform actual = collider.transform; actual != null; actual = actual.parent)
+        {
+            if (CapaIncluida(capasGancho, actual.gameObject.layer))
+                return true;
+        }
+
+        return false;
+    }
+
+    private static bool CapaIncluida(LayerMask mask, int layer)
+    {
+        return (mask.value & (1 << layer)) != 0;
+    }
+
+    // ==================================================================
+    // Joint
+    // ==================================================================
     private void ConfigurarJoint(Vector2 origen)
     {
-        enganchado = true;
+        estado = Estado.Enganchado;
 
         joint.connectedBody = null;
         joint.connectedAnchor = puntoGancho;
-        joint.anchor = rb.transform.InverseTransformPoint(origen);
+        joint.anchor = transform.InverseTransformPoint(origen);
 
         float distanciaReal = Vector2.Distance(origen, puntoGancho);
-        longitudObjetivo = Mathf.Clamp(
-            distanciaReal,
-            distanciaMinima,
-            distanciaMaxima
-        );
+        longitudObjetivo = Mathf.Clamp(distanciaReal, distanciaMinima, distanciaMaxima);
 
         joint.distance = longitudObjetivo;
         joint.maxDistanceOnly = soloDistanciaMaxima;
 
-        // Mantener esta opción activada para conservar las colisiones del jugador.
+        // Se mantiene activado para conservar las colisiones del jugador.
         joint.enableCollision = true;
         joint.enabled = true;
     }
 
     private void SoltarGancho()
     {
-        enganchado = false;
+        estado = Estado.Reposo;
         entradaRecogido = 0f;
+        entradaHorizontal = 0f;
 
         if (joint != null)
             joint.enabled = false;
@@ -610,6 +675,16 @@ public class GanchoFran : MonoBehaviour
         OcultarGanchoVisual();
     }
 
+    private void ReiniciarTodo()
+    {
+        StopAllCoroutines();
+        lanzamientoCoroutine = null;
+        SoltarGancho();
+    }
+
+    // ==================================================================
+    // Visual
+    // ==================================================================
     private void MostrarGanchoVisual(Vector2 posicion)
     {
         posicionGanchoVisual = posicion;
@@ -619,7 +694,7 @@ public class GanchoFran : MonoBehaviour
             puntaGancho.gameObject.SetActive(true);
 
             // Si el punto de unión está desplazado respecto al pivote del sprite,
-            // movemos el objeto padre para que el punto hijo coincida EXACTAMENTE
+            // se mueve el objeto padre para que el punto hijo coincida EXACTAMENTE
             // con la posición lógica del gancho.
             Vector3 offsetPivoteAUnion = Vector3.zero;
             if (puntoUnionCuerda != null)
@@ -649,14 +724,11 @@ public class GanchoFran : MonoBehaviour
         if (linea == null)
             return;
 
-        Vector2 origen = ObtenerOrigen();
-
         linea.enabled = true;
         linea.positionCount = 2;
-        linea.SetPosition(0, origen);
+        linea.SetPosition(0, ObtenerOrigen());
 
-        // Terminar exactamente en el punto de unión, no necesariamente en el pivote
-        // central del sprite. Esta es la corrección principal del espacio visual.
+        // Termina exactamente en el punto de unión, no en el pivote del sprite.
         if (puntaGancho != null && puntaGancho.gameObject.activeSelf)
         {
             Vector3 extremo = puntoUnionCuerda != null
@@ -667,7 +739,28 @@ public class GanchoFran : MonoBehaviour
         }
         else
         {
-            linea.SetPosition(1, enganchado ? puntoGancho : posicionGanchoVisual);
+            linea.SetPosition(1, estado == Estado.Enganchado ? puntoGancho : posicionGanchoVisual);
+        }
+    }
+
+    // ==================================================================
+    // Gizmos
+    // ==================================================================
+    private void OnDrawGizmosSelected()
+    {
+        Vector3 centro = transform.position;
+
+        Gizmos.color = new Color(0.2f, 0.8f, 1f, 0.6f);
+        Gizmos.DrawWireSphere(centro, distanciaMaxima);
+
+        Gizmos.color = new Color(1f, 0.6f, 0.2f, 0.6f);
+        Gizmos.DrawWireSphere(centro, distanciaMinima);
+
+        if (Application.isPlaying && estado == Estado.Enganchado)
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawLine(centro, puntoGancho);
+            Gizmos.DrawWireSphere(puntoGancho, 0.15f);
         }
     }
 }
