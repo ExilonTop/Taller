@@ -5,43 +5,78 @@ public class FranBrazoApuntar : MonoBehaviour
     [Header("Referencias")]
     public Transform player;
     public Transform brazo;
-    public Transform puntaBrazo;   // Punto de lanzamiento del gancho (hijo del brazo)
+    public Transform puntaBrazo;
 
     [Header("Órbita")]
     public float distancia = 1.5f;
 
-    private Camera cam;
+    [Header("Cámara")]
+    [Tooltip("Si se deja vacío, se utilizará Camera.main.")]
+    public Camera camaraObjetivo;
 
-    void Awake()
+    private void Awake()
     {
-        cam = Camera.main;
-        if (player == null) Debug.LogError("[FranBrazoApuntar] Falta 'player'");
-        if (brazo == null) Debug.LogError("[FranBrazoApuntar] Falta 'brazo'");
+        if (camaraObjetivo == null)
+            camaraObjetivo = Camera.main;
+
+        if (player == null)
+            Debug.LogError("[FranBrazoApuntar] Falta la referencia 'player'.");
+
+        if (brazo == null)
+            Debug.LogError("[FranBrazoApuntar] Falta la referencia 'brazo'.");
     }
 
-    void Update()
+    private void Update()
     {
-        if (player == null || brazo == null) return;
+        if (player == null || brazo == null || camaraObjetivo == null)
+            return;
 
-        Vector3 mouseWorld = cam.ScreenToWorldPoint(Input.mousePosition);
-        mouseWorld.z = 0f;
+        if (!MouseWorld2D.TryGetPointOnPlane(
+                camaraObjetivo,
+                Input.mousePosition,
+                player.position.z,
+                out Vector2 mouseWorld))
+        {
+            return;
+        }
 
-        Vector3 dir = (mouseWorld - player.position);
-        if (dir.sqrMagnitude < 0.0001f) return; // Evita NaN si el mouse coincide con el player
-        dir.Normalize();
+        Vector2 direccionMundo = mouseWorld - (Vector2)player.position;
 
-        // Posición del brazo como offset LOCAL relativo al player
-        brazo.localPosition = dir * distancia;
+        if (direccionMundo.sqrMagnitude < 0.0001f)
+            return;
 
-        // Rotación en espacio local para respetar la rotación del padre
-        float angulo = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        brazo.localRotation = Quaternion.Euler(0f, 0f, angulo);
+        direccionMundo.Normalize();
+
+        // Convertimos la dirección mundo al espacio local del padre del brazo,
+        // para que también funcione si el personaje/pivote tiene rotación.
+        Transform padre = brazo.parent;
+        Vector3 direccionLocal = padre != null
+            ? padre.InverseTransformDirection(direccionMundo)
+            : (Vector3)direccionMundo;
+
+        if (direccionLocal.sqrMagnitude < 0.0001f)
+            return;
+
+        direccionLocal.Normalize();
+        brazo.localPosition = direccionLocal * distancia;
+
+        float anguloLocal = Mathf.Atan2(
+            direccionLocal.y,
+            direccionLocal.x
+        ) * Mathf.Rad2Deg;
+
+        brazo.localRotation = Quaternion.Euler(0f, 0f, anguloLocal);
     }
 
-    /// <summary>Punto de origen del gancho (la punta del brazo).</summary>
+    /// <summary>Punto real desde el que se lanza el gancho.</summary>
     public Vector2 ObtenerPuntoLanzamiento()
     {
-        if (puntaBrazo != null) return puntaBrazo.position;
-        return brazo != null ? brazo.position : (Vector2)transform.position;
+        if (puntaBrazo != null)
+            return puntaBrazo.position;
+
+        if (brazo != null)
+            return brazo.position;
+
+        return transform.position;
     }
 }

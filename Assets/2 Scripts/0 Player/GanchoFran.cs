@@ -5,56 +5,56 @@ using UnityEngine.Tilemaps;
 [RequireComponent(typeof(Rigidbody2D))]
 public class GanchoFran : MonoBehaviour
 {
-    [Header("Configuración del gancho")]
+    [Header("Alcance y velocidad")]
     public float distanciaMaxima = 10f;
     public float distanciaMinima = 1f;
-    public float velocidadRecogida = 5f;
     public float velocidadGancho = 20f;
 
-    [Header("Detección de superficies")]
-    [Tooltip("Capas donde el gancho SÍ puede quedarse enganchado.")]
+    [Header("Superficies")]
+    [Tooltip("Capas donde el gancho puede quedarse enganchado.")]
     public LayerMask capasGancho;
 
-    [Tooltip("Capas que detienen al gancho, pero NO permiten engancharse.")]
+    [Tooltip("Capas que detienen el gancho pero no permiten engancharse.")]
     public LayerMask capasImpacto;
 
-    [Tooltip("Si está activo, una capa configurada como 'Capas Gancho' también se usa para detectar impacto.")]
     public bool usarCapasGanchoComoImpacto = true;
-
-    [Tooltip("Incluye TilemapCollider2D y CompositeCollider2D encontrados en el mapa.")]
     public bool detectarTilemaps = true;
-
-    [Tooltip("No considera triggers como superficies que detienen el gancho.")]
     public bool ignorarTriggers = true;
-
-    [Tooltip("Si el gancho no encuentra ninguna superficie, vuelve al brazo al alcanzar la distancia máxima.")]
     public bool devolverAlLlegarAlMaximo = true;
 
-    [Header("Velocidades visuales")]
-    [Tooltip("Velocidad con la que el gancho vuelve al brazo cuando no puede engancharse.")]
+    [Header("Retorno visual")]
     public float velocidadRetornoGancho = 25f;
-
     public LineRenderer linea;
-
-    [Header("Punta visual del gancho")]
-    [Tooltip("Hijo visual que viaja desde el brazo hasta la superficie.")]
     public Transform puntaGancho;
 
     [Header("Referencias")]
     public FranBrazoApuntar brazo;
+    public Camera camaraObjetivo;
 
-    [Header("Balanceo")]
-    [Tooltip("Fuerza que impulsa a Mexy en la dirección tangente a la cuerda.")]
+    [Header("Balanceo A/D")]
+    [Tooltip("Aceleración tangencial de balanceo.")]
     public float fuerzaBalanceo = 20f;
 
-    [Tooltip("Si está activo, A/D mueve a Mexy siguiendo la curva alrededor del punto de agarre.")]
     public bool usarMovimientoTangencial = true;
 
-    [Tooltip("Fuerza adicional opcional para ayudar a ganar altura durante el balanceo.")]
+    [Tooltip("Fuerza ascendente adicional. Déjala en 0 para probar la física natural.")]
     public float asistenciaAscenso = 0f;
 
+    [Header("Recogido y soltado W/S")]
+    [Tooltip("Velocidad a la que cambia la longitud deseada de la cuerda.")]
+    public float velocidadRecogida = 1.6f;
+
+    [Tooltip("Velocidad de respuesta de la longitud física de la cuerda.")]
+    public float suavidadRecogida = 6f;
+
+    [Tooltip("Diferencia máxima entre la distancia real y la longitud de cuerda al recogerla. Evita acumular tensión si una pared bloquea al jugador.")]
+    public float diferenciaMaximaTension = 0.18f;
+
+    [Tooltip("Límite de velocidad hacia el punto de enganche cuando W recoge la cuerda.")]
+    public float velocidadMaximaHaciaGancho = 5.5f;
+
     [Header("Joint")]
-    [Tooltip("True = cuerda: solo limita la distancia máxima. False = mantiene una distancia fija.")]
+    [Tooltip("True = cuerda que limita la distancia máxima.")]
     public bool soloDistanciaMaxima = true;
 
     private Rigidbody2D rb;
@@ -68,12 +68,16 @@ public class GanchoFran : MonoBehaviour
     private bool lanzando;
     private bool recogiendo;
 
+    private float longitudObjetivo;
+    private float entradaRecogido; // W = +1, S = -1
+
     private Coroutine lanzamientoCoroutine;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        cam = Camera.main;
+
+        cam = camaraObjetivo != null ? camaraObjetivo : Camera.main;
 
         rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         rb.interpolation = RigidbodyInterpolation2D.Interpolate;
@@ -83,6 +87,8 @@ public class GanchoFran : MonoBehaviour
 
         if (linea != null)
         {
+            // SetPosition trabaja en coordenadas del mundo, igual que los puntos del gancho.
+            linea.useWorldSpace = true;
             linea.positionCount = 2;
             linea.enabled = false;
         }
@@ -90,34 +96,42 @@ public class GanchoFran : MonoBehaviour
         if (puntaGancho != null)
             puntaGancho.gameObject.SetActive(false);
 
-        joint = gameObject.AddComponent<DistanceJoint2D>();
+        // Reutiliza un joint existente en lugar de crear duplicados.
+        joint = GetComponent<DistanceJoint2D>();
+        if (joint == null)
+            joint = gameObject.AddComponent<DistanceJoint2D>();
+
         joint.autoConfigureDistance = false;
-
-        // Importante: el Player conserva sus colisiones con el escenario.
         joint.enableCollision = true;
-
         joint.maxDistanceOnly = soloDistanciaMaxima;
         joint.enabled = false;
     }
 
     private void Update()
     {
-        if (cam == null || brazo == null)
-            return;
+        if (cam == null)
+            cam = camaraObjetivo != null ? camaraObjetivo : Camera.main;
 
-        Vector3 mouseWorld = cam.ScreenToWorldPoint(Input.mousePosition);
-        mouseWorld.z = 0f;
-
-        if (Input.GetMouseButtonDown(0) &&
-            !enganchado &&
-            !lanzando &&
-            !recogiendo)
+        if (cam != null &&
+            MouseWorld2D.TryGetPointOnPlane(
+                cam,
+                Input.mousePosition,
+                transform.position.z,
+                out Vector2 mouseWorld))
         {
-            lanzamientoCoroutine = StartCoroutine(LanzarGancho(mouseWorld));
+            if (Input.GetMouseButtonDown(0) &&
+                !enganchado &&
+                !lanzando &&
+                !recogiendo &&
+                brazo != null)
+            {
+                lanzamientoCoroutine = StartCoroutine(LanzarGancho(mouseWorld));
+            }
         }
 
         if (Input.GetMouseButtonUp(0))
         {
+            // Soltar durante el vuelo cancela el lanzamiento.
             if (lanzando && !recogiendo)
             {
                 if (lanzamientoCoroutine != null)
@@ -125,7 +139,6 @@ public class GanchoFran : MonoBehaviour
 
                 lanzamientoCoroutine = null;
                 lanzando = false;
-
                 OcultarGanchoVisual();
             }
 
@@ -133,86 +146,128 @@ public class GanchoFran : MonoBehaviour
                 SoltarGancho();
         }
 
+        // Leer teclas directas evita el retardo de suavizado de Input.GetAxis("Vertical").
+        entradaRecogido = 0f;
+
         if (enganchado)
         {
-            float ajuste =
-                Input.GetAxis("Vertical") *
-                velocidadRecogida *
-                Time.deltaTime;
+            bool w = Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow);
+            bool s = Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow);
 
-            if (Mathf.Abs(ajuste) > 0.01f)
-            {
-                joint.distance = Mathf.Clamp(
-                    joint.distance - ajuste,
-                    distanciaMinima,
-                    distanciaMaxima
-                );
-            }
+            if (w != s)
+                entradaRecogido = w ? 1f : -1f;
         }
     }
 
     private void FixedUpdate()
     {
-        if (!enganchado)
+        if (!enganchado || joint == null || !joint.enabled)
             return;
 
-        float movHorizontal = Input.GetAxisRaw("Horizontal");
+        float dt = Time.fixedDeltaTime;
 
-        if (Mathf.Abs(movHorizontal) < 0.01f)
-            return;
+        // W reduce la longitud deseada; S la aumenta.
+        if (Mathf.Abs(entradaRecogido) > 0.01f)
+        {
+            longitudObjetivo = Mathf.Clamp(
+                longitudObjetivo - entradaRecogido * velocidadRecogida * dt,
+                distanciaMinima,
+                distanciaMaxima
+            );
+        }
 
-        // Punto físico donde la cuerda está unida al Player.
-        Vector2 puntoAnclaJugador =
-            rb.transform.TransformPoint(joint.anchor);
+        Vector2 anclaJugador = rb.transform.TransformPoint(joint.anchor);
+        float distanciaReal = Vector2.Distance(anclaJugador, puntoGancho);
 
-        // Vector desde el Player hacia el punto donde está enganchado.
-        Vector2 vectorAlGancho =
-            puntoGancho - puntoAnclaJugador;
-
-        if (vectorAlGancho.sqrMagnitude < 0.0001f)
-            return;
-
-        Vector2 direccionCuerda =
-            vectorAlGancho.normalized;
-
-        // La tangente es perpendicular a la cuerda.
-        // A y D impulsan a Mexy a recorrer el arco alrededor del gancho.
-        Vector2 direccionTangente = new Vector2(
-            -direccionCuerda.y,
-            direccionCuerda.x
+        float longitudSiguiente = Mathf.MoveTowards(
+            joint.distance,
+            longitudObjetivo,
+            suavidadRecogida * dt
         );
 
-        if (usarMovimientoTangencial)
+        // Al recoger (W), no dejamos que la cuerda se acorte mucho más
+        // que la distancia real. Si una plataforma bloquea a Mexy, esto
+        // evita que se acumule una gran tensión y luego salga disparada.
+        if (entradaRecogido > 0f)
         {
-            // Invertimos la tangente para que A y D coincidan
-            // con la dirección esperada por el jugador:
-            // A = izquierda, D = derecha.
-            rb.AddForce(
-                direccionTangente *
-                -movHorizontal *
-                fuerzaBalanceo,
-                ForceMode2D.Force
+            float longitudMinimaSegura = Mathf.Max(
+                distanciaMinima,
+                distanciaReal - Mathf.Max(0.02f, diferenciaMaximaTension)
             );
+
+            longitudSiguiente = Mathf.Max(
+                longitudSiguiente,
+                longitudMinimaSegura
+            );
+
+            LimitarVelocidadHaciaGancho(anclaJugador);
         }
-        else
+
+        joint.distance = Mathf.Clamp(
+            longitudSiguiente,
+            distanciaMinima,
+            distanciaMaxima
+        );
+
+        // Balanceo A/D a lo largo de la tangente de la cuerda.
+        float movHorizontal = Input.GetAxisRaw("Horizontal");
+
+        if (usarMovimientoTangencial && Mathf.Abs(movHorizontal) > 0.01f)
         {
-            // Modo alternativo por si quieren comparar con el movimiento anterior.
+            Vector2 vectorAlGancho = puntoGancho - anclaJugador;
+
+            if (vectorAlGancho.sqrMagnitude > 0.0001f)
+            {
+                Vector2 direccionCuerda = vectorAlGancho.normalized;
+                Vector2 direccionTangente = new Vector2(
+                    -direccionCuerda.y,
+                    direccionCuerda.x
+                );
+
+                // El signo menos conserva los controles corregidos: A izquierda, D derecha.
+                rb.AddForce(
+                    direccionTangente * -movHorizontal * fuerzaBalanceo,
+                    ForceMode2D.Force
+                );
+            }
+        }
+        else if (!usarMovimientoTangencial && Mathf.Abs(movHorizontal) > 0.01f)
+        {
             rb.AddForce(
-                Vector2.right *
-                movHorizontal *
-                fuerzaBalanceo,
+                Vector2.right * movHorizontal * fuerzaBalanceo,
                 ForceMode2D.Force
             );
         }
 
-        // Asistencia opcional para que el jugador gane altura.
-        // Se aplica solamente hacia arriba, sin reemplazar la física del balanceo.
         if (asistenciaAscenso > 0f)
         {
             rb.AddForce(
                 Vector2.up * asistenciaAscenso,
                 ForceMode2D.Force
             );
+        }
+    }
+
+    private void LimitarVelocidadHaciaGancho(Vector2 anclaJugador)
+    {
+        if (velocidadMaximaHaciaGancho <= 0f)
+            return;
+
+        Vector2 haciaGancho = puntoGancho - anclaJugador;
+
+        if (haciaGancho.sqrMagnitude < 0.0001f)
+            return;
+
+        haciaGancho.Normalize();
+
+        float velocidadRadial = Vector2.Dot(rb.linearVelocity, haciaGancho);
+
+        // Sólo limitamos la componente de velocidad que acerca a Mexy al ancla,
+        // y sólo mientras W está recogiendo la cuerda.
+        if (velocidadRadial > velocidadMaximaHaciaGancho)
+        {
+            rb.linearVelocity -= haciaGancho *
+                (velocidadRadial - velocidadMaximaHaciaGancho);
         }
     }
 
@@ -240,6 +295,7 @@ public class GanchoFran : MonoBehaviour
         if (direccion.sqrMagnitude < 0.0001f)
         {
             lanzando = false;
+            lanzamientoCoroutine = null;
             yield break;
         }
 
@@ -252,18 +308,15 @@ public class GanchoFran : MonoBehaviour
 
         while (distanciaRecorrida < distanciaMaxima)
         {
-            float avance = velocidadGancho * Time.deltaTime;
-            float distanciaRestante =
-                distanciaMaxima - distanciaRecorrida;
-
-            avance = Mathf.Min(avance, distanciaRestante);
+            float avance = Mathf.Min(
+                velocidadGancho * Time.deltaTime,
+                distanciaMaxima - distanciaRecorrida
+            );
 
             Vector2 siguientePosicion =
                 posicionGanchoVisual + direccion * avance;
 
-            Vector2 tramo =
-                siguientePosicion - posicionGanchoVisual;
-
+            Vector2 tramo = siguientePosicion - posicionGanchoVisual;
             float longitudTramo = tramo.magnitude;
 
             if (longitudTramo > 0f)
@@ -277,27 +330,23 @@ public class GanchoFran : MonoBehaviour
                 if (hit.collider != null)
                 {
                     posicionGanchoVisual = hit.point;
-
                     MostrarGanchoVisual(posicionGanchoVisual);
 
                     if (EsEnganchable(hit.collider))
                     {
                         puntoGancho = hit.point;
-
                         ConfigurarJoint(origen);
 
                         lanzando = false;
                         lanzamientoCoroutine = null;
-
                         yield break;
                     }
 
-                    // Golpeó una superficie, pero no se puede agarrar.
+                    // Superficie no enganchable: la punta vuelve al brazo.
                     yield return StartCoroutine(RecogerGancho());
 
                     lanzando = false;
                     lanzamientoCoroutine = null;
-
                     yield break;
                 }
             }
@@ -306,19 +355,14 @@ public class GanchoFran : MonoBehaviour
             distanciaRecorrida += avance;
 
             MostrarGanchoVisual(posicionGanchoVisual);
-
             yield return null;
         }
 
-        // Llegó al alcance máximo sin engancharse a nada.
+        // Si no encontró nada hasta el máximo alcance, también vuelve al brazo.
         if (devolverAlLlegarAlMaximo)
-        {
             yield return StartCoroutine(RecogerGancho());
-        }
         else
-        {
             OcultarGanchoVisual();
-        }
 
         lanzando = false;
         lanzamientoCoroutine = null;
@@ -330,74 +374,49 @@ public class GanchoFran : MonoBehaviour
         float distancia
     )
     {
-        // La capa del gancho también se considera superficie de impacto.
         int mascaraImpacto = capasImpacto.value;
 
         if (usarCapasGanchoComoImpacto)
             mascaraImpacto |= capasGancho.value;
 
-        // Si no hay ninguna capa configurada, no hacemos un Raycast vacío.
-        if (mascaraImpacto == 0)
-            return default;
-
-        RaycastHit2D[] hits = Physics2D.RaycastAll(
-            origen,
-            direccion,
-            distancia,
-            mascaraImpacto
-        );
-
         RaycastHit2D mejorHit = default;
         float menorDistancia = float.MaxValue;
 
-        foreach (RaycastHit2D hit in hits)
+        if (mascaraImpacto != 0)
         {
-            if (hit.collider == null)
-                continue;
+            RaycastHit2D[] hits = Physics2D.RaycastAll(
+                origen,
+                direccion,
+                distancia,
+                mascaraImpacto
+            );
 
-            if (ignorarTriggers && hit.collider.isTrigger)
-                continue;
-
-            // Evita que el gancho detecte el propio Player.
-            if (hit.collider.attachedRigidbody == rb)
-                continue;
-
-            if (hit.collider.transform == transform ||
-                hit.collider.transform.IsChildOf(transform))
+            foreach (RaycastHit2D hit in hits)
             {
-                continue;
-            }
+                if (!HitValido(hit))
+                    continue;
 
-            if (hit.distance < menorDistancia)
-            {
-                menorDistancia = hit.distance;
-                mejorHit = hit;
+                if (hit.distance < menorDistancia)
+                {
+                    menorDistancia = hit.distance;
+                    mejorHit = hit;
+                }
             }
         }
 
-        // Fallback específico para TilemapCollider2D:
-        // permite detectarlo aunque la configuración del Tilemap
-        // no coincida con la de las capas de impacto.
+        // Fallback para TilemapCollider2D/CompositeCollider2D que no estén
+        // incluidos en la máscara de impacto.
         if (detectarTilemaps)
         {
-            RaycastHit2D[] todosLosHits = Physics2D.RaycastAll(
+            RaycastHit2D[] hitsTilemap = Physics2D.RaycastAll(
                 origen,
                 direccion,
                 distancia
             );
 
-            foreach (RaycastHit2D hit in todosLosHits)
+            foreach (RaycastHit2D hit in hitsTilemap)
             {
-                if (hit.collider == null)
-                    continue;
-
-                if (ignorarTriggers && hit.collider.isTrigger)
-                    continue;
-
-                if (hit.collider.attachedRigidbody == rb)
-                    continue;
-
-                if (!EsColliderDeTilemap(hit.collider))
+                if (!HitValido(hit) || !EsColliderDeTilemap(hit.collider))
                     continue;
 
                 if (hit.distance < menorDistancia)
@@ -411,6 +430,24 @@ public class GanchoFran : MonoBehaviour
         return mejorHit;
     }
 
+    private bool HitValido(RaycastHit2D hit)
+    {
+        if (hit.collider == null)
+            return false;
+
+        if (ignorarTriggers && hit.collider.isTrigger)
+            return false;
+
+        if (hit.collider.attachedRigidbody == rb)
+            return false;
+
+        if (hit.collider.transform == transform ||
+            hit.collider.transform.IsChildOf(transform))
+            return false;
+
+        return true;
+    }
+
     private bool EsColliderDeTilemap(Collider2D collider)
     {
         if (collider.GetComponent<TilemapCollider2D>() != null)
@@ -419,44 +456,39 @@ public class GanchoFran : MonoBehaviour
         if (collider.GetComponentInParent<TilemapCollider2D>() != null)
             return true;
 
-        // Compatible con TilemapCollider2D + CompositeCollider2D.
         if (collider.GetComponent<CompositeCollider2D>() != null)
-        {
-            if (collider.GetComponent<TilemapCollider2D>() != null)
-                return true;
+            return true;
 
-            if (collider.GetComponentInParent<TilemapCollider2D>() != null)
-                return true;
-        }
+        if (collider.GetComponentInParent<CompositeCollider2D>() != null)
+            return true;
 
         return false;
     }
 
     private bool EsEnganchable(Collider2D collider)
     {
-        // Caso normal: collider directamente en una capa enganchable.
         if (CapaIncluida(capasGancho, collider.gameObject.layer))
             return true;
 
-        // Si es un TilemapCollider2D, comprobamos también
-        // la capa del GameObject que contiene el Tilemap.
-        TilemapCollider2D tilemapCollider =
+        TilemapCollider2D tilemap =
             collider.GetComponent<TilemapCollider2D>();
 
-        if (tilemapCollider == null)
-        {
-            tilemapCollider =
-                collider.GetComponentInParent<TilemapCollider2D>();
-        }
+        if (tilemap == null)
+            tilemap = collider.GetComponentInParent<TilemapCollider2D>();
 
-        if (tilemapCollider != null &&
-            CapaIncluida(
-                capasGancho,
-                tilemapCollider.gameObject.layer
-            ))
-        {
+        if (tilemap != null &&
+            CapaIncluida(capasGancho, tilemap.gameObject.layer))
             return true;
-        }
+
+        CompositeCollider2D composite =
+            collider.GetComponent<CompositeCollider2D>();
+
+        if (composite == null)
+            composite = collider.GetComponentInParent<CompositeCollider2D>();
+
+        if (composite != null &&
+            CapaIncluida(capasGancho, composite.gameObject.layer))
+            return true;
 
         return false;
     }
@@ -482,19 +514,13 @@ public class GanchoFran : MonoBehaviour
 
             MostrarGanchoVisual(posicionGanchoVisual);
 
-            if (Vector2.Distance(
-                    posicionGanchoVisual,
-                    origenActual
-                ) <= 0.01f)
-            {
+            if (Vector2.Distance(posicionGanchoVisual, origenActual) <= 0.01f)
                 break;
-            }
 
             yield return null;
         }
 
         posicionGanchoVisual = ObtenerOrigen();
-
         recogiendo = false;
         OcultarGanchoVisual();
     }
@@ -505,30 +531,27 @@ public class GanchoFran : MonoBehaviour
 
         joint.connectedBody = null;
         joint.connectedAnchor = puntoGancho;
+        joint.anchor = rb.transform.InverseTransformPoint(origen);
 
-        joint.anchor =
-            rb.transform.InverseTransformPoint(origen);
-
-        float distReal =
-            Vector2.Distance(origen, puntoGancho);
-
-        joint.distance = Mathf.Clamp(
-            distReal,
+        float distanciaReal = Vector2.Distance(origen, puntoGancho);
+        longitudObjetivo = Mathf.Clamp(
+            distanciaReal,
             distanciaMinima,
             distanciaMaxima
         );
 
+        joint.distance = longitudObjetivo;
         joint.maxDistanceOnly = soloDistanciaMaxima;
 
-        // MUY IMPORTANTE para que el Player conserve las colisiones.
+        // Mantener esta opción activada para conservar las colisiones del jugador.
         joint.enableCollision = true;
-
         joint.enabled = true;
     }
 
     private void SoltarGancho()
     {
         enganchado = false;
+        entradaRecogido = 0f;
 
         if (joint != null)
             joint.enabled = false;
@@ -541,7 +564,6 @@ public class GanchoFran : MonoBehaviour
         if (puntaGancho != null)
         {
             puntaGancho.gameObject.SetActive(true);
-
             puntaGancho.position = new Vector3(
                 posicion.x,
                 posicion.y,
@@ -570,14 +592,12 @@ public class GanchoFran : MonoBehaviour
 
         linea.enabled = true;
         linea.positionCount = 2;
-
         linea.SetPosition(0, origen);
 
-        Vector2 extremo =
-            enganchado
-                ? puntoGancho
-                : posicionGanchoVisual;
-
-        linea.SetPosition(1, extremo);
+        // Terminar exactamente en la posición visual de la punta.
+        if (puntaGancho != null && puntaGancho.gameObject.activeSelf)
+            linea.SetPosition(1, puntaGancho.position);
+        else
+            linea.SetPosition(1, enganchado ? puntoGancho : posicionGanchoVisual);
     }
 }
