@@ -124,6 +124,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8985312354091509589, guid: 80a481dacdf129242841f92e28f2f11e, type: 3}
   m_PrefabInstance: {fileID: 621420192}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &146176055 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 642284968185364285, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
+  m_PrefabInstance: {fileID: 1942514128}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &246720544
 GameObject:
   m_ObjectHideFlags: 0
@@ -503,6 +508,50 @@ MonoBehaviour:
   m_CameraActivatedEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!1 &546296466 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 727110201621614699, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
+  m_PrefabInstance: {fileID: 1942514128}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &546296469
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 546296466}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 960ad17d0d9c42e4f9accc0584deedb0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FranBrazoApuntarClaude
+  player: {fileID: 664357682}
+  brazo: {fileID: 146176055}
+  puntaBrazo: {fileID: 2057147408}
+  gancho: {fileID: 546296471}
+  apuntarAlGancho: 1
+  distancia: 1.5
+  acortarCercaDeSuperficies: 1
+  capasSuperficie:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  margenSuperficie: 0.08
+  radioDeteccion: 0.04
+  velocidadRestauracion: 5
+  excluirDelRaycast: {fileID: 1289121325}
+  camaraObjetivo: {fileID: 519420031}
+  mostrarDiagnostico: 0
+--- !u!114 &546296471 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 151666471172948948, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
+  m_PrefabInstance: {fileID: 1942514128}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 546296466}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 933c2cb70a9aa764f9e5a1b03c396649, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GanchoFran
 --- !u!1 &578199868
 GameObject:
   m_ObjectHideFlags: 0
@@ -8229,6 +8278,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 80a481dacdf129242841f92e28f2f11e, type: 3}
+--- !u!4 &664357682 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7619263922002600947, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
+  m_PrefabInstance: {fileID: 1942514128}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &746278397 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8985312354091509589, guid: d38455880aa574849922697fdcb75df9, type: 3}
@@ -31505,6 +31559,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4140399842115410994, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4140399842115410994, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
       propertyPath: camaraObjetivo
       value: 
       objectReference: {fileID: 519420031}
@@ -31567,7 +31625,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 727110201621614699, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
+      insertIndex: 6
+      addedObject: {fileID: 546296469}
   m_SourcePrefab: {fileID: 100100000, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
 --- !u!1001 &1944578872
 PrefabInstance:
@@ -39066,6 +39127,11 @@ MonoBehaviour:
         m_Calls: []
   m_LegacyBlendHint: 0
   m_ComponentOwner: {fileID: 964343113}
+--- !u!4 &2057147408 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3364031778118191199, guid: 7852536d39d07674bab971e6ca5ee83a, type: 3}
+  m_PrefabInstance: {fileID: 1942514128}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2085568949
 GameObject:
   m_ObjectHideFlags: 0
