@@ -235,6 +235,34 @@ PrefabInstance:
       propertyPath: m_Name
       value: Mexy_Player_CL
       objectReference: {fileID: 0}
+    - target: {fileID: 627696707096220642, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
+      propertyPath: camaraObjetivo
+      value: 
+      objectReference: {fileID: 519420031}
+    - target: {fileID: 627696707096220642, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
+      propertyPath: excluirDelRaycast
+      value: 
+      objectReference: {fileID: 1289121325}
+    - target: {fileID: 1539319867041383696, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
+      propertyPath: m_Color.a
+      value: 0.07058824
+      objectReference: {fileID: 0}
+    - target: {fileID: 2455423152391015415, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
+      propertyPath: puntaGancho
+      value: 
+      objectReference: {fileID: 1289121325}
+    - target: {fileID: 2455423152391015415, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
+      propertyPath: camaraObjetivo
+      value: 
+      objectReference: {fileID: 519420031}
+    - target: {fileID: 2455423152391015415, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
+      propertyPath: puntoUnionCuerda
+      value: 
+      objectReference: {fileID: 2137866284}
+    - target: {fileID: 2708055125533666468, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
+      propertyPath: excluirDelRaycast
+      value: 
+      objectReference: {fileID: 1289121325}
     - target: {fileID: 4506239038070132168, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
       propertyPath: m_LocalPosition.x
       value: 3.37
@@ -276,25 +304,21 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5318201608492703313, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
-      propertyPath: radioSuelo
-      value: 0.52
-      objectReference: {fileID: 0}
-    - target: {fileID: 5318201608492703313, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
-      propertyPath: aceleracion
+      propertyPath: sprite2
+      value: 
+      objectReference: {fileID: 1928164552}
+    - target: {fileID: 6018578933996244895, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
+      propertyPath: m_SortingOrder
       value: 10
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 4395785106156932115, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
-    - {fileID: 589115783042189306, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
+    - target: {fileID: 8069284614610560188, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
+      propertyPath: m_SortingOrder
+      value: 10
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 347567096851444784, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
-      insertIndex: 4
-      addedObject: {fileID: 1789710413}
-    - targetCorrespondingSourceObject: {fileID: 347567096851444784, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
-      insertIndex: 5
-      addedObject: {fileID: 1789710412}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
 --- !u!1001 &42134613
 PrefabInstance:
@@ -339937,11 +339961,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 917127146346089399, guid: 9811c7f647104d340be93a22a474a3e4, type: 3}
   m_PrefabInstance: {fileID: 938249370}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &939162298 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 6892592596980905138, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
-  m_PrefabInstance: {fileID: 29211684}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &946305641
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -461110,11 +461129,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 917127146346089399, guid: 9811c7f647104d340be93a22a474a3e4, type: 3}
   m_PrefabInstance: {fileID: 1459308192}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &1466437959 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 486966330899151823, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
-  m_PrefabInstance: {fileID: 29211684}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1469719892
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -507143,85 +507157,6 @@ Transform:
   - {fileID: 1364052286}
   m_Father: {fileID: 613321312}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1789710409 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 347567096851444784, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
-  m_PrefabInstance: {fileID: 29211684}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1789710412
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1789710409}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 960ad17d0d9c42e4f9accc0584deedb0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FranBrazoApuntarClaude
-  player: {fileID: 2138623547}
-  brazo: {fileID: 939162298}
-  puntaBrazo: {fileID: 1466437959}
-  gancho: {fileID: 1789710413}
-  apuntarAlGancho: 1
-  distancia: 1.5
-  acortarCercaDeSuperficies: 1
-  capasSuperficie:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  margenSuperficie: 0.08
-  radioDeteccion: 0.04
-  velocidadRestauracion: 5
-  excluirDelRaycast: {fileID: 1289121325}
-  camaraObjetivo: {fileID: 519420031}
-  mostrarDiagnostico: 0
---- !u!114 &1789710413
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1789710409}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dab7a04c0f5e1ff429fa36183ca183cc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GanchoFranClaude
-  distanciaMaxima: 3
-  distanciaMinima: 1
-  velocidadGancho: 20
-  limitarAlPuntoMouse: 1
-  capasGancho:
-    serializedVersion: 2
-    m_Bits: 64
-  capasBloqueo:
-    serializedVersion: 2
-    m_Bits: 507
-  detectarTilemaps: 1
-  ignorarTriggers: 1
-  devolverAlLlegarAlMaximo: 1
-  velocidadRetornoGancho: 25
-  linea: {fileID: 1789710414}
-  puntaGancho: {fileID: 1289121325}
-  puntoUnionCuerda: {fileID: 2137866284}
-  brazo: {fileID: 1789710412}
-  camaraObjetivo: {fileID: 519420031}
-  fuerzaBalanceo: 20
-  velocidadMaximaBalanceo: 0
-  usarMovimientoTangencial: 1
-  asistenciaAscenso: 0
-  velocidadRecogida: 1.6
-  suavidadRecogida: 6
-  diferenciaMaximaTension: 0.18
-  fuerzaRecogida: 12
-  velocidadMaximaHaciaGancho: 3.5
-  soloDistanciaMaxima: 1
---- !u!120 &1789710414 stripped
-LineRenderer:
-  m_CorrespondingSourceObject: {fileID: 1050745912647377515, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
-  m_PrefabInstance: {fileID: 29211684}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1792821445
 GameObject:
   m_ObjectHideFlags: 0
@@ -515068,6 +515003,11 @@ Transform:
   - {fileID: 938249371}
   m_Father: {fileID: 1840554393}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!212 &1928164552 stripped
+SpriteRenderer:
+  m_CorrespondingSourceObject: {fileID: 8069284614610560188, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
+  m_PrefabInstance: {fileID: 29211684}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1944578872
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -552780,11 +552720,6 @@ Transform:
 Transform:
   m_CorrespondingSourceObject: {fileID: 194031415477301419, guid: 7a2ccaa664e6643439bce64866588513, type: 3}
   m_PrefabInstance: {fileID: 1523077622}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &2138623547 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 9079016900536559223, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
-  m_PrefabInstance: {fileID: 29211684}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &583870263295092233
 PrefabInstance:
