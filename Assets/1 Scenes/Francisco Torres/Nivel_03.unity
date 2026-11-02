@@ -319,6 +319,13 @@ MonoBehaviour:
   brazo: {fileID: 107359483}
   puntaBrazo: {fileID: 0}
   distancia: 1.5
+  acortarCercaDeSuperficies: 1
+  margenSuperficie: 0.08
+  radioDeteccion: 0.04
+  velocidadRestauracion: 5
+  excluirDelRaycast: {fileID: 0}
+  camaraObjetivo: {fileID: 0}
+  mostrarDiagnostico: 0
 --- !u!1 &123779362
 GameObject:
   m_ObjectHideFlags: 0
@@ -1194,7 +1201,7 @@ Transform:
   m_GameObject: {fileID: 681691111}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.18, y: -4.6, z: 0}
+  m_LocalPosition: {x: 3.11, y: -3.12, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2156,23 +2163,28 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GanchoFran
   distanciaMaxima: 10
   distanciaMinima: 1
-  velocidadRecogida: 5
   velocidadGancho: 20
+  limitarAlPuntoMouse: 1
   capasGancho:
     serializedVersion: 2
     m_Bits: 64
-  capasImpacto:
-    serializedVersion: 2
-    m_Bits: 0
-  usarCapasGanchoComoImpacto: 1
   detectarTilemaps: 1
   ignorarTriggers: 1
   devolverAlLlegarAlMaximo: 1
   velocidadRetornoGancho: 25
   linea: {fileID: 1170704630}
   puntaGancho: {fileID: 0}
+  puntoUnionCuerda: {fileID: 0}
   brazo: {fileID: 0}
+  camaraObjetivo: {fileID: 0}
   fuerzaBalanceo: 8
+  usarMovimientoTangencial: 1
+  asistenciaAscenso: 0
+  velocidadRecogida: 5
+  suavidadRecogida: 6
+  diferenciaMaximaTension: 0.18
+  fuerzaRecogida: 12
+  velocidadMaximaHaciaGancho: 3.5
   soloDistanciaMaxima: 1
 --- !u!1 &1240167497
 GameObject:

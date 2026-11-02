@@ -20,7 +20,7 @@ public class FranBrazoApuntarClaude : MonoBehaviour
     public Transform puntaBrazo;
 
     [Tooltip("GanchoFran de Mexy. Si queda vacío, se busca en el objeto del Rigidbody2D.")]
-    public GanchoFran gancho;
+    public GanchoFranClaude gancho;
 
     [Tooltip("Mientras el gancho vuela, vuelve o está enganchado, el brazo apunta al gancho en vez de al mouse, para que la cuerda salga recta.")]
     public bool apuntarAlGancho = true;
@@ -112,7 +112,7 @@ public class FranBrazoApuntarClaude : MonoBehaviour
         playerRoot = playerRb != null ? playerRb.transform : player;
 
         if (gancho == null && playerRoot != null)
-            gancho = playerRoot.GetComponent<GanchoFran>();
+            gancho = playerRoot.GetComponent<GanchoFranClaude>();
 
         // El brazo orbita alrededor de su padre; el cast sale de ese mismo pivote.
         centroOrbita = brazo != null && brazo.parent != null ? brazo.parent : playerRoot;
