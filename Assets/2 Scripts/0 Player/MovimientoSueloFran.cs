@@ -26,6 +26,7 @@ public class MovimientoSueloFran : MonoBehaviour
     [Header("Animación visual")]
     [Tooltip("Sprite de Mexy para poder cambiar la dirección.")]
     public SpriteRenderer sprite;
+    public SpriteRenderer sprite2;
 
     private Rigidbody2D rb;
 
@@ -37,12 +38,16 @@ public class MovimientoSueloFran : MonoBehaviour
 
         if (sprite == null)
             sprite = GetComponentInChildren<SpriteRenderer>();
+
+        if (sprite2 == null)
+            sprite2 = GetComponentInChildren<SpriteRenderer>();
     }
 
     private void Update()
     {
         ComprobarSuelo();
         GirarSprite();
+        GirarSprite2();
     }
 
     private void FixedUpdate()
@@ -98,9 +103,34 @@ public class MovimientoSueloFran : MonoBehaviour
 
         if (input > 0.01f)
             sprite.flipX = false;
+            
+            
 
         else if (input < -0.01f)
             sprite.flipX = true;
+
+        
+        
+    }
+
+        private void GirarSprite2()
+    {
+        if (sprite2 == null)
+            return;
+
+        float input = Input.GetAxisRaw("Horizontal");
+
+        if (input > 0.01f)
+            sprite2.flipX = false;
+            
+            
+
+        else if (input < -0.01f)
+            sprite2.flipX = true;
+            
+
+        
+        
     }
 
     private void OnDrawGizmosSelected()
