@@ -16,5 +16,8 @@ Well, your loss, but you are not the only one that has an emergency **grappling 
 
 
 
-Yo
+....jejej...JAJAJAJAJAJA...
+ja....lo siento muñeca pero parece que te has dado un buen golpe.
+
+No lu pude evitar, lo siento muñeca.
 
