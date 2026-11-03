@@ -235,6 +235,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Mexy_Player_CL
       objectReference: {fileID: 0}
+    - target: {fileID: 3682432889159882583, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
+      propertyPath: velocidadArrastre
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 4506239038070132168, guid: 7f559b4320d95e64d84de25aac0437cb, type: 3}
       propertyPath: m_LocalPosition.x
       value: -7.19
@@ -405119,7 +405123,7 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
+  m_VertexColorAlwaysGammaSpace: 1
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: -456545671
@@ -405132,17 +405136,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1231840637}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -841.7766}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1370048557}
-  m_Father: {fileID: 1423825376}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 1027.2487, y: 544.8636}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
 --- !u!1001 &1235714271
@@ -458192,7 +458196,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: -456545671
-  m_SortingOrder: 0
+  m_SortingOrder: 10
   m_TargetDisplay: 0
 --- !u!224 &1423825376
 RectTransform:
@@ -458206,7 +458210,6 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1231840641}
   - {fileID: 1476328012}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -565699,6 +565702,7 @@ SceneRoots:
   - {fileID: 191501953}
   - {fileID: 1463008013}
   - {fileID: 613180594}
+  - {fileID: 1231840641}
   - {fileID: 1423825376}
   - {fileID: 29211684}
   - {fileID: 253724538}
